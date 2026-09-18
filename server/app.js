@@ -46,46 +46,34 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Query anagram possibilities ---
 app.get('/api/get_anagrams/:word', async (req, res) => {
-	const searchWordUpper = req.params.word.toUpperCase() // Later validate or sanitize possible malicious string input for :word
-	let filteredWords 
+	const searchWordUpper = req.params.word.toUpperCase() // Later validate or sanitize possible malicious string input for word
+
+	let filteredWordsUpper
 
 	try {
 		const data = await fs.readFile('assets/words.txt', 'utf-8');
-		filteredWords = data.split('\n')
-		.filter(word => word.toUpperCase()[0] === searchWordUpper[0] && word.length === searchWordUpper.length && word.toUpperCase() !== searchWordUpper)
+
+		filteredWordsUpper = data.split('\n')
+		.filter(word => searchWordUpper.length === word.length && searchWordUpper !== word.toUpperCase()) // Later condition precludes exact input word i.e. duplicate 
 		.map(word => word.toUpperCase()) // Avoid future case issues by capitalizing all possible anagrams
   } catch (err) {
     console.error('Failed to read file:', err);
   }
-	
+
 	// Get anagrams
-	let anagrams = [], isAnagram = false, searchWordCharCount = {} 
+	let anagrams = [], isAnagram = false, searchWordUpperSorted = searchWordUpper.split('').sort().join('')
 
-	searchWordUpper.split('').forEach(chr => searchWordCharCount[chr] = searchWordCharCount[chr] ? searchWordCharCount[chr] + 1 : 1) // Extract distinct search-word char count
-	console.log(searchWordCharCount)
+	for(let i = 0; i <= filteredWordsUpper.length - 1; i++) {
+		if(filteredWordsUpper[i].split('').sort().join('') === searchWordUpperSorted) {
+			anagrams.push(filteredWordsUpper[i])
+		}
+	}
 
-	filteredWords.forEach(word => { 
-		// console.log(word)
-
-		isAnagram = word.split('').every(chr => {
-			console.log(searchWordCharCount[chr]) 
-			if(searchWordCharCount[chr] && searchWordCharCount[chr] > 0) {
-				console.log(chr)
-				searchWordCharCount[chr]--
-				return true
-			}
-			else {
-				return false
-			}
-		})
-
-		if(isAnagram) anagrams.push(word)
-	})
-
+	// Log
 	console.log(anagrams)
-	
+
 	// Return
-  res.send('Hello, Express!');
+  res.send('\n');
 });
 
 
