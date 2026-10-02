@@ -1,0 +1,13 @@
+/* src/index.css */
+/* Targets the placeholder text inside the input field */
+input::placeholder {
+  color: #8dd3c7 !important; /* Light Teal - matches the secondary palette */
+  opacity: 1 !important;     /* Ensures it's not faded by browser defaults */
+}
+
+/* Specifically for Bootstrap Form Control if the above doesn't catch it */
+.form-control::placeholder {
+  color: #8dd3c7 !important;
+  opacity: 1 !important;
+}
+
