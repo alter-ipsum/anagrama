@@ -10,8 +10,13 @@ app.set('trust proxy', 1);
 
 
 // --- CORS ---
+// allows cross-origin requests (configure origins in production)
 const cors = require('cors');
-app.use(cors()); // allows cross-origin requests (configure origins in production)
+app.use(
+	cors({
+		origin: 'http://localhost:3000'
+	})
+); 
 
 // --- Security headers ---
 const helmet = require('helmet');
