@@ -80,16 +80,22 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 	let routeResponse = {}, dictionaryUrl = "https://freedictionaryapi.com/api/v1/entries/en/";
 
 	routeResponse.results = [];
-
 	try { 
-		let response, data, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
+		let response, data, anagramResponseObject, relevantDictionaryEntry, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
 
 		for(let i = 0; i <= lookupLimit - 1; i++) {
 			response = await fetch(`${dictionaryUrl}` + `${anagrams[i].toLowerCase()}`); // Lowercase required for this API
 			data = await response.json();
 
 			if(data.entries.length > 0) {
-				routeResponse.results.push(anagrams[i]);
+        relevantDictionaryEntry = data.entries.filter(entry => entry.partOfSpeech === "noun" && entry.senses[0]?.tags !== "obsolete").pop()
+        
+        anagramResponseObject = {
+          word: anagrams[i],
+          definition: relevantDictionaryEntry?.senses[0]?.definition ? relevantDictionaryEntry.senses[0].definition : ""
+        }
+
+				routeResponse.results.push(anagramResponseObject);
 			}
 		}
 	}
