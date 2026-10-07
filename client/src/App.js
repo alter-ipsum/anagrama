@@ -92,6 +92,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'column',
     minHeight: '80px',
     minWidth: '120px',         // Ensures cards don't get too squished
     maxWidth: '160px',         // Prevents them from getting too wide
@@ -117,7 +118,7 @@ const styles = {
 
 function App() {
   const [word, setWord] = useState("");
-  const [anagrams, setAnagrams] = useState([]);
+  const [anagrams, setAnagrams] = useState([]); // Object of shape: { word: "aaa", definition: "bbb" }
   const [hasNoResults, setHasNoResults] = useState();
   const [hasAnagramMatches, setHasAnagramMatches] = useState();
 
@@ -196,7 +197,8 @@ function App() {
                     e.currentTarget.style.borderColor = '#e0f2f1';
                   }}
                 >
-                  <div style={styles.anagramText}>{anagram}</div>
+                  <div style={styles.anagramText}>{anagram.word}</div>
+                  <div style={{...styles.anagramText, fontWeight: "light"}}>{anagram.definition}</div>
                 </div>
               ))}
             </div>
