@@ -160,7 +160,7 @@ function App() {
               type="text"
               value={word}
               onChange={e => setWord(e.target.value)}
-              placeholder="Type a word..."
+              placeholder="Type an individual word..."
               style={styles.input}
               onKeyDown={e => e.key === 'Enter' && handleAnagramGeneration()}
             />
@@ -204,16 +204,16 @@ function App() {
         ) 
         : 
         (
+          hasAnagramMatches === false ?
           <div style={styles.resultsContainer}>
             <div className="text-center py-5 text-muted opacity-75">
-              {
-                hasAnagramMatches === false ?
-                <div style={styles.anagramCard}><p style={styles.anagramText}>No results!</p></div> :
-                <div>
-                  <h3 className="mb-3">Ready to Explore</h3>
-                  <p>Enter a word above to see its anagrams appear here.</p>
-                </div>
-              }
+              <p style={{...styles.badge, margin: 0}}>No Results !</p>
+            </div>
+          </div> :
+          <div style={styles.resultsContainer}>
+            <div className="text-center py-5 text-muted opacity-75">
+              <h3 className="mb-3">Ready to Explore</h3>
+              <p>Enter a word above to see its anagrams appear here.</p>
             </div>
           </div>
         )}
