@@ -80,6 +80,7 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 	let routeResponse = {}, dictionaryUrl = "https://freedictionaryapi.com/api/v1/entries/en/";
 
 	routeResponse.results = [];
+
 	try { 
 		let response, data, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
 

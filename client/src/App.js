@@ -87,7 +87,6 @@ const styles = {
     borderRadius: '12px',
     padding: '16px',
     textAlign: 'center',
-    cursor: 'pointer',
     transition: 'all 0.2s ease',
     boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
     display: 'flex',
@@ -119,6 +118,9 @@ const styles = {
 function App() {
   const [word, setWord] = useState("");
   const [anagrams, setAnagrams] = useState([]);
+  const [hasNoResults, setHasNoResults] = useState();
+  const [hasAnagramMatches, setHasAnagramMatches] = useState();
+
 
   const handleAnagramGeneration = async function () {
     if (!word.trim()) return;
@@ -132,7 +134,9 @@ function App() {
       }   
 
       const data = await response.json(); 
-      setAnagrams(data.results || []);
+
+      setHasAnagramMatches(data.results.length > 0);
+      setAnagrams(data.results);
     }   
     catch (error) {
       console.error("Error:", error.message);
@@ -170,7 +174,7 @@ function App() {
           </div>
         </div>
 
-        {anagrams.length > 0 ? (
+        {hasAnagramMatches ? (
           <div style={styles.resultsContainer}> 
             <div style={{marginTop: '24px', marginTop: '24px', textAlign: 'center'}}>
                <span style={styles.badge}>Found {anagrams.length} results</span>
@@ -197,11 +201,19 @@ function App() {
               ))}
             </div>
           </div>
-        ) : (
+        ) 
+        : 
+        (
           <div style={styles.resultsContainer}>
             <div className="text-center py-5 text-muted opacity-75">
-              <h3 className="mb-3">Ready to Explore</h3>
-              <p>Enter a word above to see its anagrams appear here.</p>
+              {
+                hasAnagramMatches === false ?
+                <div style={styles.anagramCard}><p style={styles.anagramText}>No results!</p></div> :
+                <div>
+                  <h3 className="mb-3">Ready to Explore</h3>
+                  <p>Enter a word above to see its anagrams appear here.</p>
+                </div>
+              }
             </div>
           </div>
         )}
