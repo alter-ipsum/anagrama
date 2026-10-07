@@ -215,7 +215,7 @@ function App() {
           <div style={styles.resultsContainer}>
             <div className="text-center py-5 text-muted opacity-75">
               <h3 className="mb-3">Ready to Explore</h3>
-              <p>Enter a word above to see its anagrams appear here.</p>
+              <p>Enter an individual word above to see its anagrams appear here.</p>
             </div>
           </div>
         )}
