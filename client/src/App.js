@@ -148,6 +148,18 @@ function App() {
     }   
   };
 
+  const handleCardMouseEnter = function(e) {
+    e.currentTarget.style.transform = 'translateY(-3px)';
+    e.currentTarget.style.boxShadow = '0 6px 12px rgba(13, 148, 136, 0.15)';
+    e.currentTarget.style.borderColor = '#0d9488';
+  }
+
+  const handleCardMouseLeave = function(e) {
+    e.currentTarget.style.transform = 'translateY(0)';
+    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+    e.currentTarget.style.borderColor = '#e0f2f1';
+  }
+
   return (
     <div style={styles.wrapper}>
       <div style={styles.card}>
@@ -185,27 +197,18 @@ function App() {
 
             <div style={styles.grid}>
               {anagrams.map((anagram, index) => (
-                <div
-                key={index} 
-                style={styles.anagramCard}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(13, 148, 136, 0.15)';
-                  e.currentTarget.style.borderColor = '#0d9488';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-                  e.currentTarget.style.borderColor = '#e0f2f1';
-                }}>
-                  <OverlayTrigger
-                  placement="top"
-                  delay={{ show: 250, hide: 200 }}
-                  overlay={<Tooltip>{!anagram.definition ? "No definition available." : anagram.definition}</Tooltip>}
-                  >                  
+                <OverlayTrigger
+                placement="top"
+                delay={{ show: 250, hide: 200 }}
+                overlay={<Tooltip>{!anagram.definition ? "No definition available." : anagram.definition}</Tooltip>}>                  
+                  <div
+                  key={index} 
+                  style={styles.anagramCard}
+                  onMouseEnter={handleCardMouseEnter}
+                  onMouseLeave={handleCardMouseLeave}>
                     <div style={styles.anagramText}>{anagram.word}</div>
-                  </OverlayTrigger>
-                </div>
+                  </div>
+                </OverlayTrigger>
               ))}
             </div>
           </div>
