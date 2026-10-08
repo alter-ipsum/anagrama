@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Form, Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Form, Button, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -14,33 +14,32 @@ const styles = {
     alignItems: 'center',
     padding: '20px',
     boxSizing: 'border-box',
-    backdropFilter: 'blur(4px)',
+    backdropFilter: 'blur(4px)'
   },
-  
   card: {
     backgroundColor: '#ffffff', 
     borderRadius: '24px',
     boxShadow: '0 20px 50px rgba(13, 148, 136, 0.2)',
     border: '1px solid rgba(20, 184, 166, 0.3)',
     overflow: 'hidden',
-    maxWidth: '700px', // Slightly wider for grid
+    maxWidth: '700px',
     width: '100%',
     position: 'relative',
     zIndex: 10,
     display: 'flex',
     flexDirection: 'column',
-    maxHeight: '85vh', // Prevents card from exceeding viewport height
+    maxHeight: '85vh'
   },
   header: {
     color: '#0d9488', 
     fontWeight: '800',
     fontSize: '2.5rem',
-    marginBottom: '0.5rem',
+    marginBottom: '0.5rem'
   },
   subHeader: {
     color: '#14b8a6', 
     fontSize: '1.1rem',
-    marginBottom: '1.5rem',
+    marginBottom: '1.5rem'
   },
   input: {
     borderRadius: '12px',
@@ -60,27 +59,28 @@ const styles = {
     padding: '12px 32px',
     fontSize: '1.1rem',
     borderRadius: '12px',
-    transition: 'transform 0.2s',
+    transition: 'transform 0.2s'
   },
   resultsContainer: {
     flex: 1,
     overflowY: 'auto',
+    minHeight: '200px',
     padding: '20px',
     backgroundColor: '#f0fdfa',
     borderTop: '1px solid rgba(20, 184, 166, 0.1)',
-    display: 'flex',           // Enables Flexbox
-    flexDirection: 'column',   // Stacks badge and grid vertically
-    alignItems: 'center',      // Horizontally centers everything inside
-    justifyContent: 'flex-start',
+    display: 'flex',           
+    flexDirection: 'column',   
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   grid: {
-    display: 'flex',           // Switched from 'grid' to 'flex' for easier centering
-    flexWrap: 'wrap',          // Allows items to wrap to next line
-    justifyContent: 'center',  // Crucial: Centers items within the row
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: '16px',
     padding: '10px',
-    maxWidth: '100%',          // Prevents overflow
-    width: '100%',
+    maxWidth: '100%',
+    width: '100%'
   },
   anagramCard: {
     backgroundColor: '#ffffff',
@@ -96,14 +96,14 @@ const styles = {
     justifyContent: 'center',
     flexDirection: 'column',
     minHeight: '80px',
-    minWidth: '120px',         // Ensures cards don't get too squished
-    maxWidth: '160px',         // Prevents them from getting too wide
-    flex: '0 1 auto',          // Don't grow, shrink if needed, base size auto
+    minWidth: '120px',
+    maxWidth: '160px',
+    flex: '0 1 auto'
   },
   anagramText: {
     color: '#0d9488',
     fontWeight: '700',
-    fontSize: '1.1rem',
+    fontSize: '1.1rem'
   },
   badge: {
     backgroundColor: '#f97316', 
@@ -114,24 +114,28 @@ const styles = {
     fontSize: '0.9rem',
     marginBottom: '15px',
     alignSelf: 'center',
-    display: 'inline-block',
+    display: 'inline-block'
   }
 };
 
 function App() {
   const [word, setWord] = useState("");
   const [anagrams, setAnagrams] = useState([]); // Object of shape: { word: "aaa", definition: "bbb" }
-  const [hasNoResults, setHasNoResults] = useState();
-  const [hasAnagramMatches, setHasAnagramMatches] = useState();
+  const [isFetching, setIsFetching] = useState(false);
+  const [hasNoResults, setHasNoResults] = useState(null);
+  const [hasAnagramMatches, setHasAnagramMatches] = useState(null);
 
 
   const handleAnagramGeneration = async function () {
     if (!word.trim()) return;
     
     try {
-      const encodedWord = encodeURIComponent(word.trim());
-      const response = await fetch(`http://localhost:5000/api/get_anagrams/${encodedWord}`);
-      
+      let encodedWord, response;
+
+      setIsFetching(true);
+      encodedWord = encodeURIComponent(word.trim());
+      response = await fetch(`http://localhost:5000/api/get_anagrams/${encodedWord}`);
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }   
@@ -140,10 +144,13 @@ function App() {
 
       setHasAnagramMatches(data.results.length > 0);
       setAnagrams(data.results);
+      setIsFetching(false);
     }   
     catch (error) {
       console.error("Error:", error.message);
       alert("Backend error. Check console.");
+
+      setHasAnagramMatches(null);
       setAnagrams([]);
     }   
   };
@@ -175,59 +182,66 @@ function App() {
               type="text"
               value={word}
               onChange={e => setWord(e.target.value)}
-              placeholder="Type an individual word..."
+              placeholder="Type an individual word e.g. silent"
               style={styles.input}
               onKeyDown={e => e.key === 'Enter' && handleAnagramGeneration()}
             />
             <Button 
-              variant="primary" 
-              onClick={handleAnagramGeneration}
-              style={styles.button}
+            variant="primary" 
+            onClick={handleAnagramGeneration}
+            style={styles.button}
             >
               Generate
             </Button>
           </div>
         </div>
 
-        {hasAnagramMatches ? (
-          <div style={styles.resultsContainer}> 
-            <div style={{marginTop: '24px', marginTop: '24px', textAlign: 'center'}}>
-               <span style={styles.badge}>Found {anagrams.length} results</span>
-            </div>
+        {
+          isFetching ? 
+          <div style={styles.resultsContainer}><Spinner animation="border" style={{color: "#0d9488"}} /></div> : 
+          (hasAnagramMatches ? 
+            (
+              <div style={styles.resultsContainer}> 
+                <div style={{marginTop: '24px', marginTop: '24px', textAlign: 'center'}}>
+                   <span style={styles.badge}>Found {anagrams.length} results</span>
+                </div>
 
-            <div style={styles.grid}>
-              {anagrams.map((anagram, index) => (
-                <OverlayTrigger
-                placement="top"
-                delay={{ show: 250, hide: 200 }}
-                overlay={<Tooltip>{!anagram.definition ? "No definition available." : anagram.definition}</Tooltip>}>                  
-                  <div
-                  key={index} 
-                  style={styles.anagramCard}
-                  onMouseEnter={handleCardMouseEnter}
-                  onMouseLeave={handleCardMouseLeave}>
-                    <div style={styles.anagramText}>{anagram.word}</div>
-                  </div>
-                </OverlayTrigger>
-              ))}
-            </div>
-          </div>
-        ) 
-        : 
-        (
-          hasAnagramMatches === false ?
-          <div style={styles.resultsContainer}>
-            <div className="text-center py-5 text-muted opacity-75">
-              <p style={{...styles.badge, margin: 0}}>No Results !</p>
-            </div>
-          </div> :
-          <div style={styles.resultsContainer}>
-            <div className="text-center py-5 text-muted opacity-75">
-              <h3 className="mb-3">Ready to Explore</h3>
-              <p>Enter an individual word above to see its anagrams appear here.</p>
-            </div>
-          </div>
-        )}
+                <div style={styles.grid}>
+                  {anagrams.map((anagram, index) => (
+                    <OverlayTrigger
+                    key={index} 
+                    placement="top"
+                    delay={{ show: 250, hide: 200 }}
+                    overlay={<Tooltip>{!anagram.definition ? "No definition available." : anagram.definition}</Tooltip>}>                  
+                      <div
+                      style={styles.anagramCard}
+                      onMouseEnter={handleCardMouseEnter}
+                      onMouseLeave={handleCardMouseLeave}>
+                        <div style={styles.anagramText}>{anagram.word}</div>
+                      </div>
+                    </OverlayTrigger>
+                  ))}
+                </div>
+              </div>
+            ) 
+            : 
+            (
+              hasAnagramMatches === false ?
+              <div style={styles.resultsContainer}>
+                <div className="text-center py-5 text-muted opacity-75">
+                  <p style={{...styles.badge, margin: 0}}>No Results !</p>
+                </div>
+              </div> 
+              :
+              <div style={styles.resultsContainer}>
+                <div className="text-center py-5 text-muted opacity-75">
+                  <h3 className="mb-3">Ready to Explore</h3>
+                  <p>Enter an individual word above to see its anagrams appear here.</p>
+                </div>
+              </div>
+            )
+          )
+        }
       </div>
     </div>
   );
