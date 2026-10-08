@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Form, Button } from 'react-bootstrap';
+import { Form, Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const styles = {
@@ -89,6 +90,7 @@ const styles = {
     textAlign: 'center',
     transition: 'all 0.2s ease',
     boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -183,22 +185,26 @@ function App() {
 
             <div style={styles.grid}>
               {anagrams.map((anagram, index) => (
-                <div 
-                  key={index} 
-                  style={styles.anagramCard}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(13, 148, 136, 0.15)';
-                    e.currentTarget.style.borderColor = '#0d9488';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-                    e.currentTarget.style.borderColor = '#e0f2f1';
-                  }}
-                >
-                  <div style={styles.anagramText}>{anagram.word}</div>
-                  <div style={{...styles.anagramText, fontWeight: "light"}}>{anagram.definition}</div>
+                <div
+                key={index} 
+                style={styles.anagramCard}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(13, 148, 136, 0.15)';
+                  e.currentTarget.style.borderColor = '#0d9488';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                  e.currentTarget.style.borderColor = '#e0f2f1';
+                }}>
+                  <OverlayTrigger
+                  placement="top"
+                  delay={{ show: 250, hide: 200 }}
+                  overlay={<Tooltip>{!anagram.definition ? "No definition available." : anagram.definition}</Tooltip>}
+                  >                  
+                    <div style={styles.anagramText}>{anagram.word}</div>
+                  </OverlayTrigger>
                 </div>
               ))}
             </div>
