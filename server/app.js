@@ -78,26 +78,37 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 
 	// Filter anagrams found to only include dictionary-valid words
 	let routeResponse = {}, dictionaryUrl = "https://freedictionaryapi.com/api/v1/entries/en/";
-
 	routeResponse.results = [];
+
 	try { 
-		let response, data, anagramResponseObject, relevantDictionaryEntry, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
+		let response, data, anagramResponseObject, defintions, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
 
 		for(let i = 0; i <= lookupLimit - 1; i++) {
 			response = await fetch(`${dictionaryUrl}` + `${anagrams[i].toLowerCase()}`); // Lowercase required for this API
 			data = await response.json();
 
 			if(data.entries.length > 0) {
-        relevantDictionaryEntry = data.entries.filter(entry => entry.partOfSpeech === "noun" && entry.senses[0]?.tags !== "obsolete").pop()
-        
+
+        definitions = 
+        data.entries.map(entry => { 
+          if(entry.partOfSpeech.toLowerCase() === "noun") {
+            let matchingSense = entry.senses.find(sense => sense.tags.some(tag => tag.toLowerCase() === "usually"));
+            return matchingSense?.definition
+          }
+        })
+
+        console.log(definitions)
+
         anagramResponseObject = {
           word: anagrams[i],
-          definition: relevantDictionaryEntry?.senses[0]?.definition ? relevantDictionaryEntry.senses[0].definition : ""
+          definition:  ""
         }
 
 				routeResponse.results.push(anagramResponseObject);
 			}
 		}
+
+    // Proceeds with empty routeResponse.results array if no anagrams found
 	}
 	catch (error) {
 		console.log(error);
