@@ -81,27 +81,38 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 	routeResponse.results = [];
 
 	try { 
-		let response, data, anagramResponseObject, defintions, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
+		let response, data, anagramResponseObject, defintion = "No definition available.", lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
 
 		for(let i = 0; i <= lookupLimit - 1; i++) {
 			response = await fetch(`${dictionaryUrl}` + `${anagrams[i].toLowerCase()}`); // Lowercase required for this API
 			data = await response.json();
 
+      // This clause affirms that the anagram[i], has a response from the dictionary lookup i.e. the word has meaning
 			if(data.entries.length > 0) {
 
-        definitions = 
-        data.entries.map(entry => { 
+        // Determines the correct 'definition' for the anagramResponseObject, especially when there are multiple senses or meanings of the word; pref. common nouns
+        data.entries.find(entry => { 
           if(entry.partOfSpeech.toLowerCase() === "noun") {
-            let matchingSense = entry.senses.find(sense => sense.tags.some(tag => tag.toLowerCase() === "usually"));
-            return matchingSense?.definition
+            if(entry.senses.length === 1) {
+              definition = entry.senses[0].definition
+            }
+            else if(entry.senses.length > 1) {
+              definition = entry.senses.find(sense => sense.tags.some(tag => tag.toLowerCase() === "usually"))?.definition ?? definition
+            }
+            else { 
+              definition = definition
+            }
+          }
+          else {
+
           }
         })
 
-        console.log(definitions)
+        // console.log(definition)
 
         anagramResponseObject = {
           word: anagrams[i],
-          definition:  ""
+          definition:  definition
         }
 
 				routeResponse.results.push(anagramResponseObject);
