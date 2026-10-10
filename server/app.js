@@ -101,7 +101,7 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
           if(!senseSearchEntries[j]?.senses) continue;
 
           senses = senseSearchEntries[j].senses;
-          for(let k = 0, tempDef = "123"; k <= senses.length - 1 && !definition; k++) {
+          for(let k = 0; k <= senses.length - 1 && !definition; k++) {
             if(!senses[k]?.definition) continue; 
 
             if(!senses[k].definition.includes("obsolete")) {
