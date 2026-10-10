@@ -81,29 +81,32 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 	routeResponse.results = [];
 
 	try { 
-		let response, data, anagramResponseObject, definition = "", lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
+		let response, data, anagramResponseObject, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
 
 		for(let i = 0; i <= lookupLimit - 1; i++) {
 			response = await fetch(`${dictionaryUrl}` + `${anagrams[i].toLowerCase()}`); // Lowercase required for this API
 			data = await response.json();
 
-      // This clause affirms that the anagram[i], has a response from the dictionary lookup i.e. the word has meaning
+      // This clause affirms that the anagram[i] has a response from the dictionary lookup i.e. the word has meaning
+      // It further determines the correct 'definition' for the anagramResponseObject, especially when there are multiple senses or meanings of the word; pref. common nouns// Determines the correct 'definition' for the anagramResponseObject, especially when there are multiple senses or meanings of the word; pref. common nouns
 			if(data.entries.length > 0) {
-        // This block determines the correct 'definition' for the anagramResponseObject, especially when there are multiple senses or meanings of the word; pref. common nouns// Determines the correct 'definition' for the anagramResponseObject, especially when there are multiple senses or meanings of the word; pref. common nouns
-        let nounEntries = [], nonNounEntries = [], senseSearchEntries; 
+        let definition = "", nounEntries = [], nonNounEntries = [], senseSearchEntries
 
-        // Categorise by partOfSpeech; nouns will be given priority for the definition due to greater prevalence
+        // Categorise by partOfSpeech; nouns will be given priority consideration 
         data.entries.forEach(entry => entry.partOfSpeech.toLowerCase() === "noun" ? nounEntries.push(entry) : nonNounEntries.push(entry));
-        senseSearchEntries = !nounEntries.length ? [...nonNounEntries] : [...nounEntries];
+        senseSearchEntries = nounEntries.length ? [...nounEntries] : [...nonNounEntries];
 
-        // Find relevant 'definition' for anagramResponseObject 
-        // Search reduced entries for sense tag of "usually" and associated definition; otherwise use first available sense for definition
+        // Search reduced entries for definition from non-obsolete sense of the word
         for(let j = 0, senses; j <= senseSearchEntries.length - 1 && !definition; j++) {
-          if(!senseSearchEntries[j].senses) continue;
+          if(!senseSearchEntries[j]?.senses) continue;
 
-          senses = senseSearchEntries[j]?.senses ?? [];
-          for(let k = 0; k <= senses.length - 1 && !definition; k++) {
-            if(senses[k].tags.some(tag => tag.toLowerCase() === "usually")) definition = senses[k].definition;
+          senses = senseSearchEntries[j].senses;
+          for(let k = 0, tempDef = "123"; k <= senses.length - 1 && !definition; k++) {
+            if(!senses[k]?.definition) continue; 
+
+            if(!senses[k].definition.includes("obsolete")) {
+              definition = senses[k].definition;
+            }
           }
 
           // Handle case where no 'definition' found on any entry or its senses
