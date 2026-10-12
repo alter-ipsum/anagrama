@@ -51,14 +51,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Query anagram possibilities ---
 app.get('/api/get_anagrams/:word', async (req, res) => {
-	const searchWordUpper = req.params.word.toUpperCase(); // Later validate or sanitize possible malicious string input for word
-
+	const searchWordUpper = req.params.word.trim().toUpperCase(); // Later validate or sanitize possible malicious string input for word
 	let filteredWordsUpper;
 
 	// Get file and filter matches by length of searchWordUpper and non-duplication i.e. not the same word as searchWordUpper
 	try {
 		const data = await fs.readFile('assets/words.txt', 'utf-8');
-
 		filteredWordsUpper = data.split('\n')
 		.filter(word => searchWordUpper.length === word.length && searchWordUpper !== word.toUpperCase()) // Later condition precludes exact input word i.e. duplicate 
 		.map(word => word.toUpperCase()); // Avoid future case issues by capitalizing all possible anagrams
@@ -78,12 +76,16 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 
 	// Filter anagrams found to only include dictionary-valid words
 	let routeResponse = {}, dictionaryUrl = "https://freedictionaryapi.com/api/v1/entries/en/";
+
 	routeResponse.results = [];
 
 	try { 
-		let response, data, anagramResponseObject, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
+		let response, data, anagramResponseObject, 
+    resultsLimit = 12, lookupLimit = anagrams.length < 50 ? anagrams.length : 50;
 
 		for(let i = 0; i <= lookupLimit - 1; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500)); // Delay between potential anagram lookups, to prevent rate-limiting errors
+
 			response = await fetch(`${dictionaryUrl}` + `${anagrams[i].toLowerCase()}`); // Lowercase required for this API
 			data = await response.json();
 
@@ -119,7 +121,8 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
           definition:  definition ? definition : "No definition available."
         }
 
-				routeResponse.results.push(anagramResponseObject);
+				if(routeResponse.results.length === resultsLimit) break;
+        routeResponse.results.push(anagramResponseObject);
 			}
 		}
 	}
