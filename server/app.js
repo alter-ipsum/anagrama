@@ -1,55 +1,58 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs/promises');
-
 const app = express();
-const PORT = 5000;
 
-// --- Trust proxy (for rate limiting / HTTPS behind a reverse proxy) ---
+// Configure in production
+const PORT = 5000;
+const ORIGIN = 'localhost:3000';
+const PROTOCOL = 'http';
+const PREFIX = PROTOCOL + '://';
+
+// Trust proxy (for rate limiting / HTTPS behind a reverse proxy)
 app.set('trust proxy', 1);
 
 
-// --- CORS ---
-// allows cross-origin requests (configure origins in production)
+// CORS, allows cross-origin requests
 const cors = require('cors');
 app.use(
 	cors({
-		origin: 'http://localhost:3000'
+		origin: PREFIX + ORIGIN 
 	})
 ); 
 
-// --- Security headers ---
+// Security headers
 const helmet = require('helmet');
-app.use(helmet()); // sets various HTTP headers for security
+app.use(helmet()); 
 
-// --- Logging (skip in test) ---
+// Logging (skip in test)
 const morgan = require('morgan');
 if (process.env.NODE_ENV !== 'test') {
-  app.use(morgan('dev')); // logs requests to the console
+  app.use(morgan('dev'));
 }
 
-// --- Rate limiting ---
+// Rate limiting 
 const rateLimit = require('express-rate-limit');
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per window
+    max: 100, // Limit each IP to 100 requests per window
   })
 );
 
-// --- Body parsing ---
-app.use(express.json()); // parse JSON request bodies
-app.use(express.urlencoded({ extended: true })); // parse form submissions
+// Body parsing 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// --- Cookies ---
+// Cookies
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
-// --- Static files ---
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// --- Query anagram possibilities ---
+// Query anagram possibilities
 app.get('/api/get_anagrams/:word', async (req, res) => {
 	const searchWordUpper = req.params.word.trim().toUpperCase(); // Later validate or sanitize possible malicious string input for word
 	let filteredWordsUpper;
@@ -75,7 +78,7 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 	}
 
 	// Filter anagrams found to only include dictionary-valid words
-	let routeResponse = {}, dictionaryUrl = "https://freedictionaryapi.com/api/v1/entries/en/";
+	let routeResponse = {}, dictionaryUrl = 'https://freedictionaryapi.com/api/v1/entries/en/';
 
 	routeResponse.results = [];
 
@@ -85,17 +88,16 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 
 		for(let i = 0; i <= lookupLimit - 1; i++) {
       await new Promise(resolve => setTimeout(resolve, 500)); // Delay between potential anagram lookups, to prevent rate-limiting errors
-
 			response = await fetch(`${dictionaryUrl}` + `${anagrams[i].toLowerCase()}`); // Lowercase required for this API
 			data = await response.json();
 
       // This clause affirms that the anagram[i] has a response from the dictionary lookup i.e. the word has meaning
       // It further determines the correct 'definition' for the anagramResponseObject, especially when there are multiple senses or meanings of the word; pref. common nouns// Determines the correct 'definition' for the anagramResponseObject, especially when there are multiple senses or meanings of the word; pref. common nouns
 			if(data.entries.length > 0) {
-        let definition = "", nounEntries = [], nonNounEntries = [], senseSearchEntries
+        let definition = "", nounEntries = [], nonNounEntries = [], senseSearchEntries;
 
         // Categorise by partOfSpeech; nouns will be given priority consideration 
-        data.entries.forEach(entry => entry.partOfSpeech.toLowerCase() === "noun" ? nounEntries.push(entry) : nonNounEntries.push(entry));
+        data.entries.forEach(entry => entry.partOfSpeech.toLowerCase() === 'noun' ? nounEntries.push(entry) : nonNounEntries.push(entry));
         senseSearchEntries = nounEntries.length ? [...nounEntries] : [...nonNounEntries];
 
         // Search reduced entries for definition from non-obsolete sense of the word
@@ -118,8 +120,8 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 
         anagramResponseObject = {
           word: anagrams[i],
-          definition:  definition ? definition : "No definition available."
-        }
+          definition:  definition ? definition : 'No definition available.'
+        };
 
 				if(routeResponse.results.length === resultsLimit) break;
         routeResponse.results.push(anagramResponseObject);
@@ -132,22 +134,23 @@ app.get('/api/get_anagrams/:word', async (req, res) => {
 		return;
 	}
 
-	// Respond
+	// Respond to request
 	res.json(routeResponse)
 });
 
 
-// --- 404 handler (after routes) ---
+// 404 handler
 app.use((req, res, next) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// --- Global error handler (must have 4 args, goes last) ---
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running at ${PREFIX}${ORIGIN}:${PORT}`);
 });
+

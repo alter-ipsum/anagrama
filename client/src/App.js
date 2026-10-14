@@ -119,8 +119,8 @@ const styles = {
 };
 
 function App() {
-  const [word, setWord] = useState("");
-  const [anagrams, setAnagrams] = useState([]); // Object of shape: { word: "aaa", definition: "bbb" }
+  const [word, setWord] = useState('');
+  const [anagrams, setAnagrams] = useState([]); 
   const [isFetching, setIsFetching] = useState(false);
   const [hasNoResults, setHasNoResults] = useState(null);
   const [hasAnagramMatches, setHasAnagramMatches] = useState(null);
@@ -147,8 +147,8 @@ function App() {
       setIsFetching(false);
     }   
     catch (error) {
-      console.error("Error:", error.message);
-      alert("Backend error. Check console.");
+      console.error('Error:', error.message);
+      alert('Backend error. Check console.');
 
       setHasAnagramMatches(null);
       setAnagrams([]);
@@ -170,7 +170,6 @@ function App() {
   return (
     <div style={styles.wrapper}>
       <div style={styles.card}>
-        
         <div className="p-5 pb-2">
           <div className="text-center">
             <h1 style={styles.header}>Anagrama</h1>
@@ -198,7 +197,7 @@ function App() {
 
         {
           isFetching ? 
-          <div style={styles.resultsContainer}><Spinner animation="border" style={{color: "#0d9488"}} /></div> : 
+          <div style={styles.resultsContainer}><Spinner animation="border" style={{color: '#0d9488'}} /></div> : 
           (hasAnagramMatches ? 
             (
               <div style={styles.resultsContainer}> 
@@ -212,7 +211,7 @@ function App() {
                     key={index} 
                     placement="top"
                     delay={{ show: 250, hide: 200 }}
-                    overlay={<Tooltip>{!anagram.definition ? "No definition available." : anagram.definition}</Tooltip>}>                  
+                    overlay={<Tooltip>{!anagram.definition ? 'No definition available.' : anagram.definition}</Tooltip>}>                  
                       <div
                       style={styles.anagramCard}
                       onMouseEnter={handleCardMouseEnter}
@@ -248,3 +247,4 @@ function App() {
 }
 
 export default App;
+
