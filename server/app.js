@@ -25,7 +25,13 @@ app.use(
 const helmet = require('helmet');
 app.use(helmet()); 
 
-// Logging (skip in test)
+// Compression (prod only)
+const compression = require('compression');
+if (process.env.NODE_ENV !== 'production') {
+  app.use(compression());
+}
+
+// Logging (not test only)
 const morgan = require('morgan');
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
@@ -147,7 +153,7 @@ app.use((req, res, next) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+  res.status(500).send('Something went wrong!');
 });
 
 app.listen(PORT, () => {
